@@ -21,9 +21,10 @@
 /**************************************/
 
 static CGFloat const kDefaultOpacity = 0.8 ;
-static NSTimeInterval const kDefaultDuration = 0.3 ;
+static NSTimeInterval const kDefaultDuration = 2 ;
 static CBDModalViewManagerTransitionType const kDefaultTransitionType = CBDModalViewManagerComesFromLeft ;
 
+static CGFloat const kRatioExtraSpaceWhenTransitionFromLeft = 1.30f ;
 
 
 
@@ -123,11 +124,7 @@ static CBDModalViewManagerTransitionType const kDefaultTransitionType = CBDModal
      The frame
      */
     CGRect frame ;
-    CGSize size = CGSizeApplyAffineTransform(self.presenterView.frame.size,
-                                            self.presenterView.transform) ;
-    
-    frame.size = CGSizeMake(ABS(size.width),
-                            ABS(size.height)) ;
+    frame.size = [self sizePresenterView] ;
     frame.origin = CGPointZero ;
     
     /*
@@ -174,6 +171,25 @@ static CBDModalViewManagerTransitionType const kDefaultTransitionType = CBDModal
 - (UIView *)presenterView
 {
     return self.presenterVC.view ;
+}
+
+
+
+- (CGSize)sizePresenterView
+{
+    /*
+     Be careful with this method...
+     
+     cf. message of Ali on the forum.
+     */
+
+    CGSize size = CGSizeApplyAffineTransform(self.presenterView.frame.size,
+                                             self.presenterView.transform) ;
+    
+    size = CGSizeMake(ABS(size.width),
+                      ABS(size.height)) ;
+    
+    return size ;
 }
 
 
@@ -266,8 +282,7 @@ static CBDModalViewManagerTransitionType const kDefaultTransitionType = CBDModal
             
         case CBDModalViewManagerComesFromLeft:
         {
-            CGFloat distanceForTranslation ;
-            distanceForTranslation = (self.presenterView.frame.size.width + self.presentedView.frame.size.width)/2 ;
+            CGFloat distanceForTranslation = [self distanceForTranslation] ;
             
             transformBefore = CGAffineTransformMakeTranslation(-distanceForTranslation, 0) ;
         }
@@ -302,8 +317,7 @@ static CBDModalViewManagerTransitionType const kDefaultTransitionType = CBDModal
             
         case CBDModalViewManagerComesFromLeft:
         {
-            CGFloat distanceForTranslation ;
-            distanceForTranslation = (self.presenterView.frame.size.width + self.presentedView.frame.size.width)/2 ;
+            CGFloat distanceForTranslation = [self distanceForTranslation] ;
             
             transformBefore = CGAffineTransformMakeTranslation(+distanceForTranslation, 0) ;
         }
@@ -319,7 +333,10 @@ static CBDModalViewManagerTransitionType const kDefaultTransitionType = CBDModal
 }
 
 
-
+- (CGFloat)distanceForTranslation
+{
+    return ([self sizePresenterView].width + self.presentedView.frame.size.width)/2 * kRatioExtraSpaceWhenTransitionFromLeft ;
+}
 
 
 @end
