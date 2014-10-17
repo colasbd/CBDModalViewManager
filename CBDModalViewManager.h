@@ -6,6 +6,17 @@
 
 #import <Foundation/Foundation.h>
 
+
+
+typedef NS_ENUM(NSInteger, CBDModalViewManagerTransitionType) {
+    CBDModalViewManagerSplash   = 0,
+    CBDModalViewManagerComesFromLeft,
+    CBDModalViewManagerCount
+};
+
+
+
+
 @interface CBDModalViewManager : NSObject
 
 
@@ -13,7 +24,7 @@
 @property (nonatomic, assign, readwrite) CGFloat opacity ;
 @property (nonatomic, assign, readwrite) NSTimeInterval durationWhenAppears ;
 @property (nonatomic, assign, readwrite) NSTimeInterval durationWhenDisappears ;
-
+@property (nonatomic, assign, readwrite) CBDModalViewManagerTransitionType transitionType ;
 
 #pragma mark - Init
 

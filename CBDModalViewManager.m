@@ -22,7 +22,7 @@
 
 static CGFloat const kDefaultOpacity = 0.8 ;
 static NSTimeInterval const kDefaultDuration = 0.3 ;
-
+static CBDModalViewManagerTransitionType const kDefaultTransitionType = CBDModalViewManagerComesFromLeft ;
 
 
 
@@ -87,13 +87,21 @@ static NSTimeInterval const kDefaultDuration = 0.3 ;
     if (self)
     {
         /*
+         Default values
+         */
+        _opacity = kDefaultOpacity ;
+        _durationWhenAppears = kDefaultDuration ;
+        _durationWhenDisappears = kDefaultDuration ;
+        _transitionType = kDefaultTransitionType ;
+        
+        
+        
+        /*
          Parameters
          */
         _presentedVC = presentedVC;
         _presenterVC = presenterVC ;
-        _opacity = kDefaultOpacity ;
-        _durationWhenAppears = kDefaultDuration ;
-        _durationWhenDisappears = kDefaultDuration ;
+
         
         
         /*
@@ -178,14 +186,7 @@ static NSTimeInterval const kDefaultDuration = 0.3 ;
 
 - (void)present
 {
-    /*
-     First, we create the handler
-     */
-    [self createTheHandlerView] ;
-    
-    
-    self.presentedView.alpha = 0 ;
-    self.presentedView.transform = CGAffineTransformMakeScale(0, 0) ;
+    [self configureViewsBeforeAnimationForAppearingForType:self.transitionType] ;
     
     [UIView animateWithDuration:self.durationWhenAppears/3
                           delay:0
@@ -196,7 +197,7 @@ static NSTimeInterval const kDefaultDuration = 0.3 ;
                      completion:^(BOOL finished) {
                          [UIView animateWithDuration:self.durationWhenAppears*2/3
                                                delay:0
-                                             options:UIViewAnimationOptionCurveEaseIn
+                                             options:UIViewAnimationOptionCurveEaseOut
                                           animations:^{
                                               self.presentedView.alpha = 1 ;
                                               self.presentedView.transform = CGAffineTransformIdentity ;                                          }
@@ -207,19 +208,118 @@ static NSTimeInterval const kDefaultDuration = 0.3 ;
 
 - (void)dismiss
 {
-    [UIView animateWithDuration:self.durationWhenDisappears
+    [UIView animateWithDuration:self.durationWhenAppears*2/3
                           delay:0
-                        options:UIViewAnimationOptionCurveEaseInOut
+                        options:UIViewAnimationOptionCurveEaseIn
                      animations:^{
-                         self.handlerForPresentedView.alpha = 0 ;
-                         self.presentedView.transform = CGAffineTransformMakeScale(0, 0) ;
+                         [self configureViewsInAnimationForDisappearingForType:self.transitionType] ;
                      }
                      completion:^(BOOL finished) {
-                         self.presentedView.transform = CGAffineTransformIdentity ;
-                         [self.presentedView removeFromSuperview] ;
-                         [self.handlerForPresentedView removeFromSuperview] ;
-                         self.handlerForPresentedView = nil ;
-                     }] ;
+                         [UIView animateWithDuration:self.durationWhenAppears*1/3
+                                               delay:0
+                                             options:UIViewAnimationOptionCurveEaseIn
+                                          animations:^{
+                                              self.handlerForPresentedView.alpha = 0 ;
+                                          }
+                                          completion:^(BOOL finished) {
+                                              self.presentedView.transform = CGAffineTransformIdentity ;
+                                              [self.presentedView removeFromSuperview] ;
+                                              [self.handlerForPresentedView removeFromSuperview] ;
+                                              self.handlerForPresentedView = nil ;
+                                          }] ;
+                     }];
+
 }
+
+
+
+
+
+/*
+ Appearing animations
+ */
+- (void)configureViewsBeforeAnimationForAppearingForType:(CBDModalViewManagerTransitionType)transitionType
+{
+    /*
+     First, we create the handler
+     */
+    [self createTheHandlerView] ;
+    
+    
+    
+    /*
+     Then, we set the opacity to 0
+     */
+    self.presentedView.alpha = 0 ;
+    
+    
+    
+    /*
+     Finally, we assign a transform to the presented view
+     */
+    CGAffineTransform transformBefore ;
+    
+    switch (transitionType) {
+        case CBDModalViewManagerSplash:
+            transformBefore = CGAffineTransformMakeScale(0, 0) ;
+            break;
+            
+        case CBDModalViewManagerComesFromLeft:
+        {
+            CGFloat distanceForTranslation ;
+            distanceForTranslation = (self.presenterView.frame.size.width + self.presentedView.frame.size.width)/2 ;
+            
+            transformBefore = CGAffineTransformMakeTranslation(-distanceForTranslation, 0) ;
+        }
+            break;
+            
+        default:
+            transformBefore = CGAffineTransformMakeScale(0, 0) ;
+            break;
+    }
+    
+    self.presentedView.transform = transformBefore ;
+}
+
+
+
+
+
+/*
+ Disappearing animations
+ */
+- (void)configureViewsInAnimationForDisappearingForType:(CBDModalViewManagerTransitionType)transitionType
+{
+    /*
+     Then, we assign a transform to the presented view
+     */
+    CGAffineTransform transformBefore ;
+    
+    switch (transitionType) {
+        case CBDModalViewManagerSplash:
+            transformBefore = CGAffineTransformMakeScale(0, 0) ;
+            break;
+            
+        case CBDModalViewManagerComesFromLeft:
+        {
+            CGFloat distanceForTranslation ;
+            distanceForTranslation = (self.presenterView.frame.size.width + self.presentedView.frame.size.width)/2 ;
+            
+            transformBefore = CGAffineTransformMakeTranslation(+distanceForTranslation, 0) ;
+        }
+            break;
+            
+        default:
+            transformBefore = CGAffineTransformMakeScale(0, 0) ;
+            break;
+    }
+    
+    self.presentedView.transform = transformBefore ;
+
+}
+
+
+
+
 
 @end
