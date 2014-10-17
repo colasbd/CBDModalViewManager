@@ -207,7 +207,7 @@ static NSTimeInterval const kDefaultDuration = 0.3 ;
 
 - (void)dismiss
 {
-    [UIView animateWithDuration:self.durationWhenAppears/3
+    [UIView animateWithDuration:self.durationWhenDisappears
                           delay:0
                         options:UIViewAnimationOptionCurveEaseInOut
                      animations:^{
